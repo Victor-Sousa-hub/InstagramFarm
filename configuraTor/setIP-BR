@@ -1,0 +1,23 @@
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+import time
+
+def iniciar_navegador_tor():
+    options = Options()
+    options.headless = False  # False: exibe o navegador
+
+    # Inicia o navegador Firefox configurando o proxy para o Tor
+    navegador = webdriver.Firefox(
+        options=options,
+        proxy={
+            'httpProxy': '127.0.0.1:9050',
+            'sslProxy': '127.0.0.1:9050',
+            'proxyType': 'MANUAL',
+        }
+    )
+    return navegador
+
+navegador = iniciar_navegador_tor()
+navegador.get('http://check.torproject.org')  # Confirma se está na rede Tor
+time.sleep(10)
+navegador.quit()
