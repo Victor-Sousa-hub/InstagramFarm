@@ -10,7 +10,7 @@ def iniciar_navegador_tor():
     options.headless = False  # False para exibir o navegador
 
     # Configuração do geckodriver (ajuste o caminho se necessário)
-    service = Service(executable_path='/caminho/para/geckodriver')
+    service = Service(executable_path='geckodriver')
 
     # Configura o proxy Tor
     proxy = Proxy()
