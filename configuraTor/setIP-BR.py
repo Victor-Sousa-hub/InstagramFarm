@@ -18,17 +18,23 @@ def iniciar_navegador_tor():
     proxy.http_proxy = "127.0.0.1:9050"
     proxy.ssl_proxy = "127.0.0.1:9050"
 
-    # Aplica o proxy às capacidades do navegador
-    capabilities = webdriver.DesiredCapabilities.FIREFOX.copy()
-    capabilities.update(proxy.to_capabilities())
+  # Configura o navegador com proxy e opções
+    options.set_preference("network.proxy.type", 1)
+    options.set_preference("network.proxy.http", "127.0.0.1")
+    options.set_preference("network.proxy.http_port", 9050)
+    options.set_preference("network.proxy.ssl", "127.0.0.1")
+    options.set_preference("network.proxy.ssl_port", 9050)
 
-    # Inicia o navegador Firefox com as opções e capacidades
-    navegador = webdriver.Firefox(
-        service=service,
-        options=options,
-        desired_capabilities=capabilities
-    )
-    return navegador
+    # Inicializa o navegador Firefox com as opções e serviço
+    navegador = webdriver.Firefox(service=service, options=options)
+
+    # Acessa a página de verificação do Tor
+    navegador.get('http://check.torproject.org')
+
+    # Aguarda 10 segundos e fecha o navegador
+    import time
+    time.sleep(10)
+    navegador.quit()
 
 # Inicializa o navegador e acessa a página de verificação do Tor
 navegador = iniciar_navegador_tor()
