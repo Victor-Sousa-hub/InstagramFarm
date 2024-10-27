@@ -1,45 +1,29 @@
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.chrome.options import Options
 import time
 
-def iniciar_navegador_tor():
-    # Configurações do Firefox
-    options = Options()
-    options.headless = False  # False para exibir o navegador
+# Configuração das opções do Brave
+chrome_options = Options()
+chrome_options.binary_location = "/usr/bin/brave-browser"  # Caminho do Brave
+chrome_options.add_argument('--headless')  # Executar sem interface gráfica (opcional)
 
-    # Configuração do geckodriver (ajuste o caminho se necessário)
-    service = Service(executable_path='~/bin/geckodriver')
+# Inicializando o chromedriver
+service = Service("/usr/local/bin/chromedriver")  # Caminho do chromedriver
 
-    # Configura o proxy Tor
-    proxy = Proxy()
-    proxy.proxy_type = ProxyType.MANUAL
-    proxy.http_proxy = "127.0.0.1:9050"
-    proxy.ssl_proxy = "127.0.0.1:9050"
+# Inicializando o navegador com proxy (caso necessário)
+navegador = webdriver.Chrome(service=service, options=chrome_options)
 
-  # Configura o navegador com proxy e opções
-    options.set_preference("network.proxy.type", 1)
-    options.set_preference("network.proxy.http", "127.0.0.1")
-    options.set_preference("network.proxy.http_port", 9050)
-    options.set_preference("network.proxy.ssl", "127.0.0.1")
-    options.set_preference("network.proxy.ssl_port", 9050)
-
-    # Inicializa o navegador Firefox com as opções e serviço
-    navegador = webdriver.Firefox(service=service, options=options)
-
-    # Acessa a página de verificação do Tor
-    navegador.get('http://check.torproject.org')
-
-    # Aguarda 10 segundos e fecha o navegador
-    import time
-    time.sleep(10)
-    navegador.quit()
-
-# Inicializa o navegador e acessa a página de verificação do Tor
-navegador = iniciar_navegador_tor()
+# Acessa a página de verificação do Tor
 navegador.get('http://check.torproject.org')
 
-# Aguarda 10 segundos para observar a página e encerra
+if "Congratulations" in navegador.page_source:
+    print("Conectado à rede Tor!")
+else:
+    print("Não está conectado ao Tor.")
+
+# Aguarda e fecha o navegador
 time.sleep(10)
 navegador.quit()
