@@ -21,8 +21,7 @@ def configurar_navegador(proxy):
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument(f'--proxy-server={proxy}')
 
-    service = Service("/usr/local/bin/chromedriver")  # Caminho do ChromeDriver
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     return driver
 
 # Função para criar uma conta no Threads
