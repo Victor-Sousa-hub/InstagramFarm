@@ -1,59 +1,75 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from seleniumwire import webdriver # Importar do seleniumwire
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
+import json
 import time
 
-# Lista de proxies da Bright Data
-PROXIES = [
-    "brd.superproxy.io:22225:brd-customer-hl_8b06715c-zone-isp_proxy1-ip-185.185.147.145:8fz7adnqj598"
-    "brd.superproxy.io:22225:brd-customer-hl_8b06715c-zone-isp_proxy1-ip-178.171.25.170:8fz7adnqj598"
-    "brd.superproxy.io:22225:brd-customer-hl_8b06715c-zone-isp_proxy1-ip-178.171.31.226:8fz7adnqj598"
-    "brd.superproxy.io:22225:brd-customer-hl_8b06715c-zone-isp_proxy1-ip-178.171.24.61:8fz7adnqj598"
-]
+# Função para carregar os proxies do arquivo JSON
+def carregar_proxies():
+    with open("proxies.json", "r") as f:
+        return json.load(f)
 
-# Função para configurar o WebDriver com proxy
+# Função para configurar o navegador com o proxy e autenticação
 def configurar_navegador(proxy):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Executa sem interface gráfica
+    # Configurar as opções do Selenium Wire com o proxy e autenticação
+    seleniumwire_options = {
+        'proxy': {
+            'http': f"http://{proxy['user']}:{proxy['password']}@{proxy['proxy']}:{proxy['port']}",
+            'https': f"https://{proxy['user']}:{proxy['password']}@{proxy['proxy']}:{proxy['port']}",
+            'no_proxy': 'localhost,127.0.0.1'  # Bypass do proxy para localhost
+        }
+    }
+
+    chrome_options = webdriver.ChromeOptions()
+    # chrome_options.add_argument("--headless")  # Opcional: Executa sem interface gráfica
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument(f'--proxy-server={proxy}')
 
-    driver = webdriver.Chrome(options=chrome_options)
+    # Inicializa o driver do Selenium Wire com as opções
+    driver = webdriver.Chrome(seleniumwire_options=seleniumwire_options, options=chrome_options)
     return driver
 
-# Função para criar uma conta no Threads
-def criar_conta(driver):
-    driver.get("https://www.instagram.com/")
-    html = driver.page_source
 
-    # Exibir o conteúdo HTML capturado
-    print(html)
-    time.sleep(5)
+# Função para preencher e enviar o formulário
+def preencher_formulario(driver):
+    # Dicionário com os dados que queremos preencher
+    dados = {
+        "Nome completo": "João Silva",
+        "Número do celular ou email": "joao.silva@example.com",
+        "Senha": "(11) 99999-9999",
+        "Nome de usuário": "Rua Exemplo, 123"
+    }
 
-# Função principal para alternar entre os proxies e criar contas
-def executar_criacao_contas():
-    contas = [
-        {"email": "email1@example.com", "username": "usuario1", "senha": "senha123"},
-        {"email": "email2@example.com", "username": "usuario2", "senha": "senha123"},
-        {"email": "email3@example.com", "username": "usuario3", "senha": "senha123"},
-        {"email": "email4@example.com", "username": "usuario4", "senha": "senha123"}
-    ]
+    # Localiza todas as labels com a classe 'aa48'
+    labels = driver.find_elements(By.CLASS_NAME, "aa48")
 
-    for i, proxy in enumerate(PROXIES):
-        print(f"Usando proxy: {proxy}")
+    # Itera sobre as labels e preenche os campos com base no texto do span
+    for label in labels:
+        span_texto = label.find_element(By.TAG_NAME, "span").text.strip()
+
+        if span_texto in dados:
+            input_campo = label.find_element(By.TAG_NAME, "input")
+            input_campo.clear()  # Limpa o campo antes de preencher
+            input_campo.send_keys(dados[span_texto])
+            print(f"Preenchido: {span_texto} -> {dados[span_texto]}")
+
+# Função principal para alternar entre proxies e realizar automação
+def executar_automacao():
+    proxies = carregar_proxies()
+
+    for proxy in proxies:
+        print(f"Usando proxy: {proxy['user']}@{proxy['proxy']}:{proxy['port']}")
         driver = configurar_navegador(proxy)
 
         try:
-            conta = contas[i]
-            criar_conta(driver)
+            # Acessa o site desejado para teste
+            driver.get("https://www.instagram.com/accounts/emailsignup/")
+            time.sleep(10)
+            preencher_formulario(driver)
         except Exception as e:
-            print(f"Erro ao criar conta: {e}")
-        finally:
-            driver.quit()  # Fechar o navegador após cada tentativa
+            print(f"Erro: {e}")
 
+        time.sleep(5)  # Aguarda alguns segundos entre mudanças de proxy
+
+# Executa o script
 if __name__ == "__main__":
-    executar_criacao_contas()
-
+    executar_automacao()
