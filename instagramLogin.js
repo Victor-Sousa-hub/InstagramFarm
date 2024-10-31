@@ -1,18 +1,78 @@
 const puppeteer = require('puppeteer');
+const  {db,getUsuarioById,atualizaSessao} = require('./dataBase.js');
 
 (async () => {
   const url = 'https://instagram.com'; // Substitua pela URL da página de login
+  const userid = 49;
+
+  const usuario = await getUsuarioById(userid);
+
+  if(!usuario){
+    console.log('Usuario não encontrado!!');
+    process.exit(1);
+  }
+
+  // Inicia o navegador e abre uma nova página
+  const browser = await puppeteer.launch({ headless: false, 
+                                           args: ['--lang==pt-BR'] 
+  }); // Headless: false para visualizar
+  const page = await browser.newPage();
+
+  if (usuario.sessao) {
+    console.log('Tentando fazer login com a sessão existente.');
+
+    try {
+      // Decodifica a string do cookie de sessão
+      const sessionCookieValue = decodeURIComponent(usuario.sessao);
+    
+      // Define o cookie de sessão como um objeto para o Puppeteer
+      const sessionCookie = {
+        name: 'sessionid',           // Nome do cookie (substitua por 'sessionid' ou o nome real do cookie necessário)
+        value: sessionCookieValue,    // Valor do cookie decodificado
+        domain: '.instagram.com',     // Domínio específico para o cookie
+        path: '/',
+        httpOnly: true,
+        secure: true
+      };
+      
+      await page.setExtraHTTPHeaders({
+        'Accept-Language': 'pt-BR,pt;q=0.9'
+      });
+    
+      // Define a localização do navegador para o Brasil
+      await page.emulateTimezone('America/Sao_Paulo');
+      // Navega para o Instagram
+      await page.goto(url, { waitUntil: 'networkidle2' });
+    
+      // Define o cookie de sessão na página
+      await page.setCookie(sessionCookie);
+    
+      // Recarrega a página para aplicar o cookie
+      await page.reload({ waitUntil: 'networkidle2' });
+    
+      // Verifica se o login foi bem-sucedido
+      const isLoggedIn = await page.evaluate(() => {
+        return !!document.querySelector('nav svg[aria-label="Página inicial"]');
+      });
+    
+      if (isLoggedIn) {
+        console.log('Login via sessão bem-sucedido.');
+      } else {
+        console.log('Não foi possível fazer login com a sessão existente. Prosseguindo com login por usuário e senha.');
+      }
+    } catch (error) {
+      console.log('Erro ao processar o cookie de sessão:', error);
+      console.log('Prosseguindo com login por usuário e senha.');
+    }
+  }
 
   const targets = [
-    {spanText: 'Phone number, username, or email', textoParaPreencher: 'christopher.roman90' },
-    {spanText: 'Password', textoParaPreencher: 'hYjQ8ogU' }
+    {spanText: 'Telefone, nome de usuário ou email', textoParaPreencher: 'jay.conner15' },
+    {spanText: 'Senha', textoParaPreencher: 'bt57qd6f' }
   ];
 
   const botaoSelector = 'button[type="submit"]'; // Seletor do botão de login
 
-  // Inicia o navegador e abre uma nova página
-  const browser = await puppeteer.launch({ headless: false }); // Headless: false para visualizar
-  const page = await browser.newPage();
 
   // Navega até a URL de login
   await page.goto(url, { waitUntil: 'networkidle2' });
@@ -69,24 +129,27 @@ const puppeteer = require('puppeteer');
     console.log('Login falhou ou não há cookies de sessão disponíveis após múltiplas tentativas.');
     return null;
   }
-  
+  // Função para checar e registrar a URL atual
+  async function checarUrlAtual() {
+    const currentUrl = String(page.url()); // Converte explicitamente para string
+    // Verifica se a URL contém "challenge/action"
+    if (currentUrl.includes('challenge/action')) {
+      console.log('Página de verificação de segurança detectada.');
+    } else {
+      console.log('Página normal, sem verificação de segurança.');
+    }
+
+    return currentUrl;
+  }
   // Clica no botão de login e aguarda a navegação
   await page.click(botaoSelector);
   console.log('Botão de login clicado.');
   
-  async function bypassVerification(page, email) {
-    const isBypassRequired = await page.evaluate(() => {
-      return !!document.querySelector('input[name="verificationCode"]');
-    });
   
-    if (isBypassRequired) {
-      console.log('Verificação de segurança detectada. Buscando código no e-mail...');
-    }
-  }
 
-  
+
   await page.waitForNavigation({ waitUntil: 'networkidle2' });
-  
+  checarUrlAtual()
   // Chama a função de verificação de cookies de sessão
   await verificarCookiesSessao(page);
 

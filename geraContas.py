@@ -56,4 +56,4 @@ def gerar_e_salvar_usuarios(quantidade=5):
 
 # Executa o script para gerar e salvar 5 usuários (ou qualquer quantidade desejada)
 if __name__ == "__main__":
-    gerar_e_salvar_usuarios(5)  # Alterar quantidade se necessário
+    gerar_e_salvar_usuarios(50)  # Alterar quantidade se necessário

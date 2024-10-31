@@ -4,8 +4,8 @@ const puppeteer = require('puppeteer');
   const url = 'https://instagram.com'; // Substitua pela URL da página de login
 
   const targets = [
-    {spanText: 'Telefone, nome de usuário ou email', textoParaPreencher: 'João Silva' },
-    {spanText: 'Senha', textoParaPreencher: 'minha_senha' }
+    {spanText: 'Phone number, username, or email', textoParaPreencher: 'christopher.roman90' },
+    {spanText: 'Password', textoParaPreencher: 'hYjQ8ogU' }
   ];
 
   const botaoSelector = 'button[type="submit"]'; // Seletor do botão de login
@@ -45,24 +45,55 @@ const puppeteer = require('puppeteer');
     await encontrarEPreencher(target);
   }
 
-  // Clica no botão de login
+  // Função auxiliar para esperar um intervalo de tempo
+    function esperar(intervalo) {
+        return new Promise(resolve => setTimeout(resolve, intervalo));
+  }
+  
+  // Função auxiliar para verificar a presença dos cookies de sessão
+  async function verificarCookiesSessao(page, tentativas = 10, intervalo = 1000) {
+    for (let i = 0; i < tentativas; i++) {
+      const cookies = await page.cookies();
+      const sessionCookies = cookies.filter(cookie => cookie.name.includes('session'));
+  
+      if (sessionCookies.length > 0) {
+        console.log('Login bem-sucedido! Cookies da sessão:');
+        console.table(sessionCookies);
+        return sessionCookies;
+      }
+  
+      // Aguarda o intervalo antes de verificar novamente
+      await esperar(intervalo);
+    }
+    
+    console.log('Login falhou ou não há cookies de sessão disponíveis após múltiplas tentativas.');
+    return null;
+  }
+  
+  // Clica no botão de login e aguarda a navegação
   await page.click(botaoSelector);
   console.log('Botão de login clicado.');
-
-  // Aguarda a navegação para a próxima página
-  await page.waitForNavigation({ waitUntil: 'networkidle2' });
-
-  // Verifica se o login foi bem-sucedido pela existência de um cookie de sessão
-  const cookies = await page.cookies();
-  const sessionCookies = cookies.filter(cookie => cookie.name.includes('session'));
-
-  if (sessionCookies.length > 0) {
-    console.log('Login bem-sucedido! Cookies da sessão:');
-    console.table(sessionCookies);
-  } else {
-    console.log('Login falhou ou não há cookies de sessão disponíveis.');
+  async function bypassVerification(page, email) {
+    const isBypassRequired = await page.evaluate(() => {
+      return !!document.querySelector('input[name="verificationCode"]');
+    });
+  
+    if (isBypassRequired) {
+      console.log('Verificação de segurança detectada. Buscando código no e-mail...');
+      const verificationCode = await getVerificationCode(email);
+      if (verificationCode) {
+        await page.type('input[name="verificationCode"]', verificationCode, { delay: 100 });
+        await page.click(botaoSelector);
+        await page.waitForNavigation({ waitUntil: 'networkidle2' });
+        console.log('Verificação de segurança concluída com sucesso.');
+      } else {
+        console.log('Erro: Código de verificação não encontrado no e-mail.');
+      }
+    }
   }
+  await page.waitForNavigation({ waitUntil: 'networkidle2' });
+  
+  // Chama a função de verificação de cookies de sessão
+  await verificarCookiesSessao(page);
 
-  // Fecha o navegador
-  await browser.close();
 })();
