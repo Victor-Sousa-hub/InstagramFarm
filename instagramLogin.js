@@ -3,7 +3,7 @@ const  {db,getUsuarioById,atualizaSessao} = require('./dataBase.js');
 
 (async () => {
   const url = 'https://instagram.com'; // Substitua pela URL da página de login
-  const userid = 49;
+  const userid = 40;
 
   const usuario = await getUsuarioById(userid);
 
@@ -12,8 +12,19 @@ const  {db,getUsuarioById,atualizaSessao} = require('./dataBase.js');
     process.exit(1);
   }
 
+
+
+  // Função para salvar cookies de sessão no banco de dados
+  async function salvarSessao() {
+    const cookies = await page.cookies();
+    const sessionCookies = JSON.stringify(cookies); // Converte os cookies para string JSON
+
+    await atualizarSessao(userId, sessionCookies); // Salva no banco de dados
+    console.log('Sessão salva no banco de dados.');
+  }  
+
   // Inicia o navegador e abre uma nova página
-  const browser = await puppeteer.launch({ headless: false, 
+  const browser = await puppeteer.launch({ headless: true, 
                                            args: ['--lang==pt-BR'] 
   }); // Headless: false para visualizar
   const page = await browser.newPage();
@@ -67,8 +78,8 @@ const  {db,getUsuarioById,atualizaSessao} = require('./dataBase.js');
   }
 
   const targets = [
-    {spanText: 'Telefone, nome de usuário ou email', textoParaPreencher: 'jay.conner15' },
-    {spanText: 'Senha', textoParaPreencher: 'bt57qd6f' }
+      {spanText: 'Phone number, username, or email', textoParaPreencher: 'jay.conner15' },
+    {spanText: 'Password', textoParaPreencher: 'bt57qd6f' }
   ];
 
   const botaoSelector = 'button[type="submit"]'; // Seletor do botão de login
@@ -117,9 +128,10 @@ const  {db,getUsuarioById,atualizaSessao} = require('./dataBase.js');
       const sessionCookies = cookies.filter(cookie => cookie.name.includes('session'));
   
       if (sessionCookies.length > 0) {
-        console.log('Login bem-sucedido! Cookies da sessão:');
-        console.table(sessionCookies);
-        return sessionCookies;
+          console.log('Login bem-sucedido! Cookies da sessão:');
+          console.table(sessionCookies);
+	  await salvarSessao();
+          return sessionCookies;
       }
   
       // Aguarda o intervalo antes de verificar novamente
