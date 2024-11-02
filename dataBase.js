@@ -50,10 +50,23 @@ function getUsuarioById(id) {
 }
 
 // Função para atualizar a coluna 'sessao' de um usuário
-function atualizarSessao(id, sessao) {
+function atualizaSessao(id, sessao) {
   return new Promise((resolve, reject) => {
     const query = `UPDATE usuarios SET sessao = ? WHERE id = ?`;
     db.run(query, [sessao, id], function (err) {
+      if (err) {
+        reject(err.message);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function salvaSeguidor(usuario){
+  return new Promise((resolve, reject) => {
+    const query = `INSERT OR IGNORE INTO seguidores (nome_usuario) VALUES (?);`;
+    db.run(query, [usuario], function (err) {
       if (err) {
         reject(err.message);
       } else {
@@ -68,5 +81,6 @@ module.exports = {
   db,
   criarTabela,
   getUsuarioById,
-  atualizarSessao
+  atualizaSessao,
+  salvaSeguidor
 };
