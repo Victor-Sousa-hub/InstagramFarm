@@ -55,17 +55,40 @@ const  {db,getUsuarioById, salvaSeguidor} = require('./dataBase.js');
         }
     }
 
-    //-------------------O PROGRAMA INICIA AQUI---------------------------------------  
+    //---------------------------------VARIAVES DE AMBIENTE--------------------------------------------------  
     const Url = 'https://instagram.com'; // URL que você deseja navegar após o login
 
-    const browser = await puppeteer.launch({ headless: false });
+    const proxyHost = 'br.smartproxy.com';
+    const proxyPort = '10006';
+    const proxyProtocol = 'https';
+    const proxyUser = 'spqb6vvqht';
+    const proxyPass = '_kDyg76Aa9TmrOsdj5';
+
+    const IDs = [3, 10, 15, 28, 31, 47, 49];
+    const randomId = Math.floor(Math.random() * IDs.length);
+    usuario = await getUsuarioById(31);
+    console.log(usuario)
+
+    //---------------------------------INICIO DA EXECUÇÃO----------------------------------------------
+    const browser = await puppeteer.launch({ headless: true,
+        args: [
+            `--proxy-server=${proxyProtocol}://${proxyHost}:${proxyPort}`
+          ]
+    });
     const page = await browser.newPage();
 
-    await page.goto(Url, { waitUntil: 'networkidle2' });
+    // Autenticação de Proxy
+   await page.authenticate({
+    username: proxyUser,
+    password: proxyPass
+  });
+
+    await page.goto(Url, { waitUntil: 'networkidle2',timeout: 60000 });
+    
+    
     
 
-    usuario = await getUsuarioById(10);
-    console.log(usuario)
+
     if (usuario.sessao) {
         console.log('Tentando fazer login com a sessão existente.');
 
@@ -90,13 +113,13 @@ const  {db,getUsuarioById, salvaSeguidor} = require('./dataBase.js');
         // Define a localização do navegador para o Brasil
         await page.emulateTimezone('America/Sao_Paulo');
         // Navega para o Instagram
-        await page.goto(Url, { waitUntil: 'networkidle2' });
+        await page.goto(Url, { waitUntil: 'networkidle2',timeout: 60000 });
         
         // Define o cookie de sessão na página
         await page.setCookie(sessionCookie);
         
         // Recarrega a página para aplicar o cookie
-        await page.reload({ waitUntil: 'networkidle2' });
+        await page.reload({ waitUntil: 'networkidle2', timeout: 120000});
         
         
         } catch (error) {
@@ -107,7 +130,7 @@ const  {db,getUsuarioById, salvaSeguidor} = require('./dataBase.js');
     }
     
     const newUrl = 'https://www.instagram.com/laarimichelin.fitness/followers/';
-    await page.goto(newUrl, { waitUntil: 'networkidle2' });
+    await page.goto(newUrl, { waitUntil: 'networkidle2',timeout: 60000 });
     console.log(`Navegador iniciado em ${newUrl}`);
     
     // Extrai o número de seguidores do seguidor
@@ -124,9 +147,10 @@ const  {db,getUsuarioById, salvaSeguidor} = require('./dataBase.js');
 
     // Aguarda que os elementos desejados carreguem
     //await page.waitForSelector('span._ap3a _aaco _aacw _aacx _aad7 _aade');
-    await page.type('[placeholder="Pesquisar"]', 'an');
+    //await page.type('[placeholder="Pesquisar"]', 'an');
+    
     await new Promise(resolve => setTimeout(resolve, 2000));
-    for(let i = 0;i < 10;i++){
+    for(let i = 0;i < 150;i++){
         // Insere o texto no campo de pesquisa
         
         const subpageSelector = '.xyi19xy.x1ccrb07.xtf3nb5.x1pc53ja.x1lliihq.x1iyjqo2.xs83m0k.xz65tgg.x1rife3k.x1n2onr6';
