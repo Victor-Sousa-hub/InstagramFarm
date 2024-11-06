@@ -63,14 +63,40 @@ function atualizaSessao(id, sessao) {
   });
 }
 
-function salvaSeguidor(usuario){
+function salvaSeguidor(id,usuario){
   return new Promise((resolve, reject) => {
-    const query = `INSERT OR IGNORE INTO seguidores (nome_usuario) VALUES (?);`;
-    db.run(query, [usuario], function (err) {
+    const query = `INSERT OR IGNORE INTO seguidores (id,usuario) VALUES (?,?);`;
+    db.run(query, [id,usuario], function (err) {
       if (err) {
         reject(err.message);
       } else {
         resolve();
+      }
+    });
+  });
+}
+
+function numeroSeguidor(seguidores,id){
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE seguindo SET (seguidores) = (?) where id == ?;`;
+    db.run(query, [seguidores,id], function (err) {
+      if (err) {
+        reject(err.message);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function selecionaSeguidor(id) {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT usuario FROM seguindo WHERE id = ?;`;
+    db.get(query, [id], (err, row) => {
+      if (err) {
+        reject(err.message);
+      } else {
+        resolve(row ? row.usuario : null);  // Retorna o usuário ou null se não encontrado
       }
     });
   });
@@ -82,5 +108,7 @@ module.exports = {
   criarTabela,
   getUsuarioById,
   atualizaSessao,
-  salvaSeguidor
+  salvaSeguidor,
+  numeroSeguidor,
+  selecionaSeguidor
 };
