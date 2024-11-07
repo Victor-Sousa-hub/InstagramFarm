@@ -54,8 +54,18 @@ const  {db,getUsuarioById,selecionaSeguidor,segueVolta } = require('./dataBase.j
     //---------------------------------VARIAVES DE AMBIENTE--------------------------------------------------  
 
 
-   
-    usuario = await getUsuarioById(15);
+    const args = process.argv.slice(2);
+    const userIdArg = args.find(arg => arg.startsWith('--id='));
+
+    if (!userIdArg) {
+        console.error('Erro: O argumento --id=<USER_ID> é obrigatório.');
+        process.exit(1); // Sai do programa com erro
+    }
+
+    const userId = parseInt(userIdArg.split('=')[1],10);
+
+
+    usuario = await getUsuarioById(userId);
     console.log(usuario)
 
     //---------------------------------INICIO DA EXECUÇÃO----------------------------------------------
