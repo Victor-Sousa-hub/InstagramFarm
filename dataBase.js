@@ -102,6 +102,19 @@ function selecionaSeguidor(id) {
   });
 }
 
+function segueVolta(id,segue_volta){
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE seguindo_ord SET (segue_volta) = ? where id = ?;`;
+    db.get(query, [segue_volta,id], (err, row) => {
+      if (err) {
+        reject(err.message);
+      } else {
+        resolve(row ? row.usuario : null);  // Retorna o usuário ou null se não encontrado
+      }
+    });
+  });
+}
+
 // Exporta as funções para uso em outros arquivos
 module.exports = {
   db,
@@ -110,5 +123,6 @@ module.exports = {
   atualizaSessao,
   salvaSeguidor,
   numeroSeguidor,
-  selecionaSeguidor
+  selecionaSeguidor,
+  segueVolta
 };
