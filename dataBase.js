@@ -1,5 +1,4 @@
 // database.js
-
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
@@ -112,9 +111,22 @@ function segueVolta(id,segue_volta){
         resolve(row ? row.usuario : null);  // Retorna o usuário ou null se não encontrado
       }
     });
-  });
+  });    
 }
 
+
+function buscaSeguindo(){
+  return new Promise((resolve, reject) => {
+      const query = `SELECT id,usuario FROM seguindo_ord WHERE segue_volta is NULL limit 320;`;
+      db.all(query,[],(err, row) => {
+      if (err) {
+        return reject(err.message);
+      } else {
+          resolve(row); 
+      }
+    });
+  });   
+}
 // Exporta as funções para uso em outros arquivos
 module.exports = {
   db,
@@ -124,5 +136,7 @@ module.exports = {
   salvaSeguidor,
   numeroSeguidor,
   selecionaSeguidor,
-  segueVolta
+  segueVolta,
+  buscaSeguindo
+    
 };

@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const  {db,getUsuarioById,selecionaSeguidor,segueVolta } = require('./dataBase.js');
+const  {db,getUsuarioById,selecionaSeguidor,segueVolta,buscaSeguindo} = require('./dataBase.js');
 
 (async () => {
     //-----------------------FUNÇÕES AUXULIARES---------------------------------------
@@ -70,7 +70,7 @@ const  {db,getUsuarioById,selecionaSeguidor,segueVolta } = require('./dataBase.j
 
     //---------------------------------INICIO DA EXECUÇÃO----------------------------------------------
     const Url = "https://instagram.com";
-    const browser = await puppeteer.launch({ headless: false,});
+    const browser = await puppeteer.launch({ headless: true,});
     const page = await browser.newPage();
 
     await page.goto(Url, { waitUntil: 'networkidle2',timeout: 60000 });
@@ -115,13 +115,20 @@ const  {db,getUsuarioById,selecionaSeguidor,segueVolta } = require('./dataBase.j
         }
     }
     
+    const usuarios = await buscaSeguindo();
+
+    if (usuarios.length === 0){
+	console.log('Nenhum usuario encontrado');
+	return;
+    }
     
-    for(let i = 29;i < 939 ;i++){
-        const conta = await selecionaSeguidor(i);
-        if (conta != null){
-            
-        
-            const newUrl = `https://www.instagram.com/${conta}/`;
+    let iteracao = 1;
+    for(const {id,usuario} of usuarios){
+
+	 
+	console.log(`----------------------------!!!!!Iteracao: ${iteracao}!!!!!!!!!------------------------------------`);
+
+	    const newUrl = `https://www.instagram.com/${usuario}/`;
             await page.goto(newUrl, { waitUntil: 'networkidle2',timeout: 0 });
             console.log(`Navegador iniciado em ${newUrl}`);
 
@@ -152,13 +159,11 @@ const  {db,getUsuarioById,selecionaSeguidor,segueVolta } = require('./dataBase.j
             const encontrado = await buscaComCampo(page, nomeProcurado);
 
             console.log(`Resultado da busca: ${encontrado}`); // 1 para encontrado, 0 caso contrário
-            segueVolta(i,encontrado);
-                    
-            
-        }
+        segueVolta(id,encontrado);
+	iteracao += 1;
     
     }
-    
+    browser.close();
 
 
 })();
