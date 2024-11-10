@@ -1,3 +1,5 @@
+
+//-----------------------------------------CONEXÃO COM BANCO DE DADOS-------------------------------
 // database.js
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -13,6 +15,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log('Conectado ao banco de dados SQLite.');
   }
 });
+
+//----------------------------------------FUNÇÕES----------------------------------------------
+
 
 // Função para criar a tabela, se ela não existir
 function criarTabela() {
@@ -62,6 +67,7 @@ function atualizaSessao(id, sessao) {
   });
 }
 
+//Insere seguidores na base suja seguidores
 function salvaSeguidor(id,usuario){
   return new Promise((resolve, reject) => {
     const query = `INSERT OR IGNORE INTO seguidores (id,usuario) VALUES (?,?);`;
@@ -75,9 +81,10 @@ function salvaSeguidor(id,usuario){
   });
 }
 
+//Atualiza o numero de seguidores das contas na base limpa seguidores_total
 function numeroSeguidor(seguidores,id){
   return new Promise((resolve, reject) => {
-    const query = `UPDATE seguindo SET (seguidores) = (?) where id == ?;`;
+    const query = `UPDATE seguidores_total SET (numero_seguidores) = (?) where id == ?;`;
     db.run(query, [seguidores,id], function (err) {
       if (err) {
         reject(err.message);
@@ -88,19 +95,22 @@ function numeroSeguidor(seguidores,id){
   });
 }
 
-function selecionaSeguidor(id) {
+//Seleciona todos os seguidores da base limpa seguidores_total
+function selecionaSeguidores() {
   return new Promise((resolve, reject) => {
-    const query = `SELECT usuario FROM seguindo WHERE id = ?;`;
-    db.get(query, [id], (err, row) => {
+    const query = `SELECT id, usuario FROM seguidores_total;`;
+    db.all(query, [], (err, rows) => { 
       if (err) {
-        reject(err.message);
+        console.error("Erro ao buscar seguidores:", err.message);
+        reject(err.message); // Rejeita a promise em caso de erro
       } else {
-        resolve(row ? row.usuario : null);  // Retorna o usuário ou null se não encontrado
+        resolve(rows); // Retorna todas as linhas
       }
     });
   });
 }
 
+//Atualiza a coluna segue_volta na base seguindo_ord(!!!Analise já finalizada!!!!)
 function segueVolta(id,segue_volta){
   return new Promise((resolve, reject) => {
     const query = `UPDATE seguindo_ord SET (segue_volta) = ? where id = ?;`;
@@ -113,11 +123,11 @@ function segueVolta(id,segue_volta){
     });
   });    
 }
-
-
+//Busca usuario na base seguindo_ord(!!!Analise já finalizada!!!!!!!)
 function buscaSeguindo(){
   return new Promise((resolve, reject) => {
-      const query = `SELECT id,usuario FROM seguindo_ord WHERE segue_volta is NULL limit 320;`;
+      const query = `select id,usuario from seguindo_ord where segue_volta = 2 and seguidores not like '%Seguido%';
+;`;
       db.all(query,[],(err, row) => {
       if (err) {
         return reject(err.message);
@@ -127,7 +137,10 @@ function buscaSeguindo(){
     });
   });   
 }
-// Exporta as funções para uso em outros arquivos
+
+
+
+//-------------------------Exporta as funções para uso em outros arquivos----------------------
 module.exports = {
   db,
   criarTabela,
@@ -135,7 +148,7 @@ module.exports = {
   atualizaSessao,
   salvaSeguidor,
   numeroSeguidor,
-  selecionaSeguidor,
+  selecionaSeguidores,
   segueVolta,
   buscaSeguindo
     
