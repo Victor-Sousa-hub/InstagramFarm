@@ -121,7 +121,7 @@ const axios = require('axios');
   });
 
   // Inicia o navegador e abre uma nova página
-  const browser = await puppeteer.launch({ headless: false, 
+  const browser = await puppeteer.launch({ headless: true, 
           args: ['--lang==pt-BR',
                 `--proxy-server=http://${proxyHost}:${proxyPort}`]
   }); // Headless: false para visualizar
