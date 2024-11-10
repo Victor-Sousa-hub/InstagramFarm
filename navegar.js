@@ -1,7 +1,8 @@
 const puppeteer = require('puppeteer');
 const { db, getUsuarioById, salvaSeguidor } = require('./dataBase.js');
 const FollowBack = require('./followBack.js');
-const BuscaSeguidor = require('./buscaSeguidores.js'); // Certifique-se de que essa classe existe
+const BuscaSeguidor = require('./buscaSeguidores.js');
+const NumeroSeguidores = require('./numeroSeguidores.js');
 const { ArgumentParser } = require('argparse');
 
 //---------------------------------VARIÁVEIS DE AMBIENTE--------------------------------------------------
@@ -61,8 +62,8 @@ async function main() {
 
     parser.add_argument('-c', '--class', {
         required: true,
-        choices: ['followback', 'buscaSeguidor'],
-        help: 'Class to execute: followback or buscaSeguidor',
+        choices: ['followBack', 'buscaSeguidor','numeroSeguidores'],
+        help: 'Class to execute: followback,buscaSeguidor or numeroSeguidores',
     });
 
     parser.add_argument('-u', '--username', {
@@ -90,7 +91,10 @@ async function main() {
         } else if (args.class === 'buscaSeguidor') {
             const buscaSeguidor = new BuscaSeguidor(page);
             await buscaSeguidor.performAction(args.username);
-        } else {
+        } else if(args.class === 'numeroSeguidores'){
+            const numeroSeguidores = new NumeroSeguidores(page);
+            await numeroSeguidores.performAction();
+        }else {
             console.error('Classe inválida. Use followback ou buscaSeguidor.');
         }
     } catch (error) {
