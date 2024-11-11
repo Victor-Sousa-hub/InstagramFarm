@@ -5,7 +5,7 @@ class BuscaSeguidores {
     constructor(page) {
         this.page = page; // Salva a referência da página
     }
-
+    /////////////////////////////////////////FUNÇÃO AUXILIARES/////////////////////////////////////////
     // Função para realizar scroll em um elemento
     async scrollElemento(selector) {
         console.log(`Iniciando scroll para o seletor: ${selector}`);
@@ -40,9 +40,44 @@ class BuscaSeguidores {
         }, selector);
 
         console.log("Scroll completo.");
+        
     }
 
-    // Método principal para executar a busca de seguidores
+    // Função auxiliar para busca
+    async buscaComCampo(nomeProcurado) {
+        const searchInputSelector = 'input[placeholder="Pesquisar"]';
+
+        try {
+            // Aguarda o campo de busca carregar
+            await this.page.waitForSelector(searchInputSelector, { timeout: 5000 });
+
+            // Digita o nome no campo de busca
+            await this.page.type(searchInputSelector, nomeProcurado);
+
+            // Aguarda os resultados carregarem
+            await new Promise(resolve => setTimeout(resolve, 8000));
+            console.log(`Buscando seguidores do tipo ${nomeProcurado}`)
+        } catch (error) {
+            console.error('Erro durante a busca:', error.message);
+        }
+    }
+    async limparCampoDeBusca() {
+        const selector = 'input[placeholder="Pesquisar"]';
+        try {
+            await this.page.evaluate((selector) => {
+                const input = document.querySelector(selector);
+                if (input) {
+                    input.value = ''; // Limpa o valor do campo
+                    input.dispatchEvent(new Event('input', { bubbles: true })); // Atualiza o DOM
+                }
+            }, selector);
+            console.log("Campo de busca limpo com sucesso.");
+        } catch (error) {
+            console.error("Erro ao limpar o campo de busca:", error.message);
+        }
+    }
+
+    ////////////////////////////////// MÉTODO PRINCIPAL///////////////////////////////////////////////////
     async performAction(username) {
         const newUrl = `https://www.instagram.com/${username}/`;
         await this.page.goto(newUrl, { waitUntil: 'networkidle2', timeout: 0 });
@@ -67,25 +102,42 @@ class BuscaSeguidores {
             return;
         }
 
-        // Itera pelos seguidores
+        
         const subpageSelector = '.xyi19xy.x1ccrb07.xtf3nb5.x1pc53ja.x1lliihq.x1iyjqo2.xs83m0k.xz65tgg.x1rife3k.x1n2onr6';
+        
 
-        for (let i = 40; i < 150; i++) {
-            await this.scrollElemento(subpageSelector);
+        const buscaTermos = ["Mig", "Art", "Gae", "Thé", "Hei", "Rav", "Dav", "Ber", "Noa", "Gab", "Sam", "Ped", "Ant", "Isa", "Ben", "Ben", "Mat", "Luc", "Joa", "Nic", "Luc", "Lor", "Hen", "Joã", "Raf", "Hen", "Mur", "Lev", "Gui", "Vic", "Fel", "Bry", "Mat", "Ben", "Joã", "Pie", "Leo", "Dan", "Gus", "Ped", "Joã", "Ema", "Cal", "Dav", "Ant", "Edu", "Enr", "Cai", "Jos", "Enz", "Aug", "Mat", "Vit", "Enz", "Cau", "Fra", "Rae", "Joã", "Tho", "Yur", "Yan", "Ant", "Oli", "Otá", "Joã", "Nat", "Dav", "Vin", "The", "Val", "Rya", "Lui", "Art", "Joã", "Léo", "Rav", "Apo", "Thi", "Tom", "Mar", "Jos", "Eri", "Lia", "Jos", "Lua", "Asa", "Rau", "Jos", "Dom", "Kau", "Kal", "Lui", "Dom", "Dav", "Est", "Bre", "Dav", "Tha", "Isr"]; // Termos de busca
+        
+        for(let termoAtual = 0; termoAtual < buscaTermos.length;termoAtual++){
+            await this.limparCampoDeBusca()
+            // Obtém os primeiros 4 números do horário atual
+            const horaAtual = new Date();
+            const iInicial = parseInt(
+                horaAtual.getHours().toString().padStart(2, '0') +
+                horaAtual.getMinutes().toString().padStart(2, '0')
+            );
+            const iFinal = iInicial + 5;
+            
+            await this.buscaComCampo(buscaTermos[termoAtual]);
+            
+            // Itera pelos seguidores
+            for (let i = iInicial; i < iFinal; i++) {
+                await this.scrollElemento(subpageSelector);
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
-            const spanTexts = await this.page.evaluate(() => {
-                const elements = document.querySelectorAll('span._ap3a._aaco._aacw._aacx._aad7._aade');
-                return Array.from(elements).map(element => element.innerText);
-            });
+                const spanTexts = await this.page.evaluate(() => {
+                    const elements = document.querySelectorAll('span._ap3a._aaco._aacw._aacx._aad7._aade');
+                    return Array.from(elements).map(element => element.innerText);
+                });
 
-            console.log('Seguidores encontrados:', spanTexts);
+                console.log('Seguidores encontrados:', spanTexts);
 
-            spanTexts.forEach((username, index) => {
-                const uniqueID = `${i}-${index}`; // Combina a iteração e o índice
-                salvaSeguidor(username, uniqueID);
-            });
+                spanTexts.forEach((username, index) => {
+                    const uniqueID = `${i}-${index}`; // Combina a iteração e o índice
+                    salvaSeguidor(username, uniqueID);
+                });
+            }
         }
     }
 }
