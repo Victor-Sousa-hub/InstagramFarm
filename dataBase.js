@@ -98,7 +98,7 @@ function numeroSeguidor(seguidores,id){
 //Seleciona todos os seguidores da base limpa seguidores_total
 function selecionaSeguidores() {
   return new Promise((resolve, reject) => {
-    const query = `SELECT id, usuario FROM seguidores_total;`;
+      const query = `SELECT id, usuario FROM seguidores_total WHERE numero_seguidores is NULL  ORDER BY RANDOM() LIMIT 600;`;
     db.all(query, [], (err, rows) => { 
       if (err) {
         console.error("Erro ao buscar seguidores:", err.message);
