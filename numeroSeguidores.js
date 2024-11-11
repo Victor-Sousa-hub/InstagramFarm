@@ -57,6 +57,8 @@ class NumeroSeguidores {
                     i += 1;
                 } catch (error) {
                     console.error(`Erro durante o processamento para ID ${id}:`, error.message);
+                    console.log(`Registrando 0 seguidores para o ID ${id} devido ao erro.`);
+                    await numeroSeguidor('0', id); // Salva 0 seguidores em caso de erro
                 }
             }
         } catch (error) {
