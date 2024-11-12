@@ -29,17 +29,17 @@ class NumeroSeguidores {
                         continue;
                     }
                     console.log(`---------------------ITERAÇÃO ${i}---------------------------`)
-                    const newUrl = `https://www.instagram.com/${usuario}/`;
+                    const newUrl = `https://www.instagram.com/isabellalima__/`;
                     await this.page.goto(newUrl, { waitUntil: 'networkidle2', timeout: 60000 });
                     console.log(`Navegador iniciado em ${newUrl}`);
 
-                    const followerCountSelector = 'a[href*="/followers"] span';
+                    const followerCountSelector = '.html-span.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x1hl2dhg.x16tdsg8.x1vvkbs';
 
                     // Aguarda o seletor estar disponível e extrai o número de seguidores
                     await this.page.waitForSelector(followerCountSelector, { timeout: 10000 });
                     const followerCount = await this.page.evaluate((selector) => {
-                        const element = document.querySelector(selector);
-                        return element ? element.innerText : null;
+                        const elements = document.querySelectorAll(selector);
+                        return elements[1] ? elements[1].innerText : null; // Acessa o segundo elemento e retorna o texto
                     }, followerCountSelector);
 
                     if (followerCount) {
